@@ -1,0 +1,239 @@
+{
+  "iamPolicyExamples": {
+    "description": "Example IAM policy configurations used in the lab",
+    "policies": {
+      "projectViewerPolicy": {
+        "bindings": [
+          {
+            "role": "roles/viewer",
+            "members": [
+              "user:username2@example.com"
+            ]
+          }
+        ],
+        "description": "Basic project viewer access for User 2"
+      },
+      "storageObjectViewerPolicy": {
+        "bindings": [
+          {
+            "role": "roles/storage.objectViewer",
+            "members": [
+              "user:username2@example.com",
+              "serviceAccount:read-bucket-objects@PROJECT_ID.iam.gserviceaccount.com"
+            ]
+          }
+        ],
+        "description": "Read-only access to Cloud Storage objects"
+      },
+      "storageObjectCreatorPolicy": {
+        "bindings": [
+          {
+            "role": "roles/storage.objectCreator",
+            "members": [
+              "serviceAccount:read-bucket-objects@PROJECT_ID.iam.gserviceaccount.com"
+            ]
+          }
+        ],
+        "description": "Allows creating objects in Cloud Storage"
+      },
+      "serviceAccountUserPolicy": {
+        "bindings": [
+          {
+            "role": "roles/iam.serviceAccountUser",
+            "members": [
+              "domain:altostrat.com"
+            ]
+          }
+        ],
+        "description": "Allows domain users to use service accounts"
+      },
+      "computeInstanceAdminPolicy": {
+        "bindings": [
+          {
+            "role": "roles/compute.instanceAdmin.v1",
+            "members": [
+              "domain:altostrat.com"
+            ]
+          }
+        ],
+        "description": "Administrative access to Compute Engine instances"
+      }
+    }
+  },
+  "roleDefinitions": {
+    "description": "Detailed breakdown of roles used in the lab",
+    "roles": {
+      "roles/viewer": {
+        "title": "Viewer",
+        "description": "Read-only access to all resources",
+        "permissions": [
+          "*.get",
+          "*.list"
+        ],
+        "stage": "GA",
+        "includedPermissions": [
+          "resourcemanager.projects.get",
+          "storage.buckets.list",
+          "storage.objects.list",
+          "compute.instances.list"
+        ]
+      },
+      "roles/storage.objectViewer": {
+        "title": "Storage Object Viewer",
+        "description": "View objects in Cloud Storage",
+        "permissions": [
+          "storage.objects.get",
+          "storage.objects.list"
+        ],
+        "stage": "GA"
+      },
+      "roles/storage.objectCreator": {
+        "title": "Storage Object Creator",
+        "description": "Create objects in Cloud Storage",
+        "permissions": [
+          "storage.objects.create"
+        ],
+        "stage": "GA"
+      },
+      "roles/iam.serviceAccountUser": {
+        "title": "Service Account User",
+        "description": "Run operations as a service account",
+        "permissions": [
+          "iam.serviceAccounts.actAs",
+          "iam.serviceAccounts.get",
+          "iam.serviceAccounts.list"
+        ],
+        "stage": "GA"
+      },
+      "roles/compute.instanceAdmin.v1": {
+        "title": "Compute Instance Admin (v1)",
+        "description": "Full control of Compute Engine instances",
+        "permissions": [
+          "compute.instances.*",
+          "compute.images.useReadOnly",
+          "compute.snapshots.useReadOnly",
+          "compute.disks.create"
+        ],
+        "stage": "GA"
+      }
+    }
+  },
+  "customPolicyExamples": {
+    "description": "Examples of custom IAM policies for specific use cases",
+    "policies": {
+      "bucketSpecificReadPolicy": {
+        "title": "Bucket-Specific Read Policy",
+        "description": "Custom policy for read access to specific bucket",
+        "bindings": [
+          {
+            "role": "roles/storage.objectViewer",
+            "members": [
+              "user:username2@example.com"
+            ],
+            "condition": {
+              "title": "Bucket specific access",
+              "description": "Access only to specific bucket",
+              "expression": "resource.name.startsWith('projects/_/buckets/YOUR_BUCKET_NAME/')"
+            }
+          }
+        ]
+      },
+      "timeBasedAccessPolicy": {
+        "title": "Time-Based Access Policy",
+        "description": "Policy with time-based conditions",
+        "bindings": [
+          {
+            "role": "roles/storage.objectViewer",
+            "members": [
+              "user:username2@example.com"
+            ],
+            "condition": {
+              "title": "Business hours only",
+              "description": "Access only during business hours",
+              "expression": "request.time.getHours() >= 9 && request.time.getHours() < 17"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "gcloudCommands": {
+    "description": "Common gcloud commands for IAM management",
+    "commands": {
+      "viewProjectPolicy": {
+        "command": "gcloud projects get-iam-policy PROJECT_ID",
+        "description": "View current IAM policy for a project"
+      },
+      "addProjectBinding": {
+        "command": "gcloud projects add-iam-policy-binding PROJECT_ID --member='user:username@example.com' --role='roles/viewer'",
+        "description": "Add a new IAM policy binding to a project"
+      },
+      "removeProjectBinding": {
+        "command": "gcloud projects remove-iam-policy-binding PROJECT_ID --member='user:username@example.com' --role='roles/viewer'",
+        "description": "Remove an IAM policy binding from a project"
+      },
+      "listServiceAccounts": {
+        "command": "gcloud iam service-accounts list",
+        "description": "List all service accounts in the project"
+      },
+      "createServiceAccount": {
+        "command": "gcloud iam service-accounts create SERVICE_ACCOUNT_NAME --display-name='Display Name'",
+        "description": "Create a new service account"
+      },
+      "addServiceAccountBinding": {
+        "command": "gcloud iam service-accounts add-iam-policy-binding SERVICE_ACCOUNT_EMAIL --member='user:username@example.com' --role='roles/iam.serviceAccountUser'",
+        "description": "Grant service account user role"
+      },
+      "testPermissions": {
+        "command": "gcloud auth application-default print-access-token",
+        "description": "Test current authentication and permissions"
+      }
+    }
+  },
+  "troubleshooting": {
+    "description": "Common IAM issues and their solutions",
+    "issues": {
+      "accessDenied403": {
+        "error": "Error 403: Access Denied",
+        "possibleCauses": [
+          "User lacks necessary IAM role",
+          "Resource-level permissions not granted",
+          "Service account missing required role",
+          "Conditional access policy blocking request"
+        ],
+        "solutions": [
+          "Check IAM policy bindings",
+          "Verify role includes required permissions",
+          "Check service account roles and scopes",
+          "Review conditional access expressions"
+        ]
+      },
+      "insufficientAuthScopes": {
+        "error": "Request had insufficient authentication scopes",
+        "possibleCauses": [
+          "VM created with limited access scopes",
+          "Service account missing on VM",
+          "OAuth scopes too restrictive"
+        ],
+        "solutions": [
+          "Recreate VM with broader scopes",
+          "Attach service account to VM",
+          "Use 'cloud-platform' scope for full access"
+        ]
+      },
+      "serviceAccountNotFound": {
+        "error": "Service account not found",
+        "possibleCauses": [
+          "Service account deleted",
+          "Incorrect service account email",
+          "Service account in different project"
+        ],
+        "solutions": [
+          "Verify service account exists",
+          "Check service account email format",
+          "Ensure correct project context"
+        ]
+      }
+    }
+  }
+}
